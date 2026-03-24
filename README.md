@@ -75,60 +75,61 @@ society-management-system/
 
 -----
 
-## ⚙️ Getting Started (Local Setup)
+⚙️ Getting Started (Local Setup)
+📋 Prerequisites
+Node.js LTS
 
-### 📋 Prerequisites
+MongoDB Local or Atlas Connection String
 
-  * Node.js LTS
-  * MongoDB Local or Atlas Connection String
+🔧 Installation
+Clone the repository:
 
-### 🔧 Installation
+Bash
+git clone https://github.com/izhanrehan/Society-Management-Project-MERN.git
+cd Society-Management-Project-MERN
+Initialize Backend:
 
-1.  **Clone the repository:**
+Bash
+cd server
+npm install
+npm run dev # or node index.js
+Initialize Frontend:
 
-    ```bash
-    git clone [https://github.com/izhanrehan/Society-Management-Project-MERN.git](https://github.com/izhanrehan/Society-Management-Project-MERN.git)
-    cd Society-Management-Project-MERN
-    ```
+Bash
+cd ../client
+npm install
+npm start
+🔑 Environment Variables
+Deploy with the following setups in your .env files for production:
 
-2.  **Initialize Backend:**
+Backend Setup (/server/.env):
 
-    ```bash
-    cd server
-    npm install
-    npm run dev # or node index.js
-    ```
-
-3.  **Initialize Frontend:**
-
-    ```bash
-    cd ../client
-    npm install
-    npm start
-    ```
-
------
-
-## 🔑 Environment Variables
-
-Deploy with the following setups in your `.env` files for production:
-
-**Backend Setup (`/server/.env`):**
-
-```env
+Code snippet
 MONGO_URI=your_mongodb_cluster_url
 PORT=5000
 JWT_SECRET=your_secret_encryption_key
-```
+Frontend Setup (/client/.env):
 
-**Frontend Setup (`/client/.env`):**
+Code snippet
+REACT_APP_API_URL=https://society-management-project-mern.vercel.app/api
+👥 Contributors
+<p align="left">
+<a href="https://github.com/izhanrehan">
+<img src="https://img.shields.io/badge/Developer-Izhan%20Rehan-blue?style=for-the-badge&logo=github" alt="Izhan GitHub" />
+</a>
+</p>
 
-```env
-REACT_APP_API_URL=[https://society-management-project-mern.vercel.app/api](https://society-management-project-mern.vercel.app/api)
-```
+Izhan Rehan - Full Stack Developer - GitHub Profile
 
------
+<p align="center">Built with 💻 and 🧠 as a MERN Stack Prototype</p>
 
-## 👥 Contributors
-  * **Izhan Rehan** - *Full Stack Developer* - [GitHub Profile](https://www.google.com/search?q=https://github.com/izhanrehan)
+<p align="center">
+<img src="https://img.shields.io/badge/MongoDB-4EA94B?style=flat-square&logo=mongodb&logoColor=white" />
+<img src="https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white" />
+<img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" />
+<img src="https://img.shields.io/badge/Node-339933?style=flat-square&logo=node.js&logoColor=white" />
+</p>
 
+<p align="center">
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=65&section=footer" width="100%"/>
+</p>
