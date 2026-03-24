@@ -1,10 +1,8 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
 import connectDB from './src/config/db.js';
-
 import authRoutes from './src/routes/auth.routes.js';
 import eventRoutes from './src/routes/event.routes.js';
 import registrationRoutes from './src/routes/registration.routes.js';
@@ -17,21 +15,32 @@ const PORT = process.env.PORT || 5000;
 
 connectDB();
 
-// CORS FIX
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true,
-}));
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://society-management-project-mern-4ylr.vercel.app',
+  'https://society-management-project-mern.vercel.app',
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/societies', societyRoutes);
 
-// Test route
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
