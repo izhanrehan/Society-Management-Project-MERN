@@ -1,5 +1,4 @@
-// src/pages/admin/Profile.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../../components/Sidebar';
@@ -7,208 +6,294 @@ import Header from '../../components/Header';
 import API_BASE_URL from '../../config/api';
 
 const Profile = () => {
-    const loggedInSocietyId = '684d8d423127bff09b6e9f14';
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
-    const [profile, setProfile] = useState(null);
-    const [loadingProfile, setLoadingProfile] = useState(true);
-    const [errorProfile, setErrorProfile] = useState(null);
+  useEffect(() => {
+    const fetchAllEventsPull = async () => {
+      setLoadingEvents(true);
+      setError('');
 
-    const [upcomingEvents, setUpcomingEvents] = useState([]);
-    const [pastEvents, setPastEvents] = useState([]);
-    const [loadingEvents, setLoadingEvents] = useState(true);
-    const [errorEvents, setErrorEvents] = useState(null);
+      try {
+        const response = await axios.get(`${API_BASE_URL}/events`);
+        setEvents(response.data || []);
+      } catch (err) {
+        console.error('Events fetch failed:', err);
+        setError('Failed to load events. Please try again.');
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            if (!loggedInSocietyId) {
-                setLoadingProfile(false);
-                setErrorProfile("No logged-in society ID found. Please log in.");
-                return;
-            }
+    fetchAllEventsPull();
+  }, []);
 
-            try {
-                setLoadingProfile(true);
-                const response = await axios.get(`${API_BASE_URL}/societies/${loggedInSocietyId}`);
-                setProfile(response.data);
-                setErrorProfile(null);
-            } catch (err) {
-                setErrorProfile('Failed to load profile. Please try again later.');
-                setProfile(null);
-            } finally {
-                setLoadingProfile(false);
-            }
-        };
+  const today = new Date().toISOString().split('T')[0];
 
-        fetchProfile();
-    }, [loggedInSocietyId]);
+  const upcomingEvents = useMemo(() => {
+    return events.filter((e) => {
+      const eventDate = e.date_time || e.date;
+      const name = e.name || e.title || '';
+      const venue = e.venue || e.location || '';
+      const matchesSearch =
+        name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        venue.toLowerCase().includes(searchTerm.toLowerCase());
 
-    useEffect(() => {
-        const fetchProfileEvents = async () => {
-            if (!loggedInSocietyId) {
-                setLoadingEvents(false);
-                return;
-            }
+      return (
+        matchesSearch &&
+        ((e.status === 'upcoming' || e.status === 'active') ||
+          (eventDate && eventDate >= today))
+      );
+    });
+  }, [events, searchTerm, today]);
 
-            try {
-                setLoadingEvents(true);
-                const upcomingResponse = await axios.get(`${API_BASE_URL}/events/society/${loggedInSocietyId}/upcoming`);
-                setUpcomingEvents(upcomingResponse.data);
+  const pastEvents = useMemo(() => {
+    return events.filter((e) => {
+      const eventDate = e.date_time || e.date;
+      const name = e.name || e.title || '';
+      const venue = e.venue || e.location || '';
+      const matchesSearch =
+        name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        venue.toLowerCase().includes(searchTerm.toLowerCase());
 
-                const pastResponse = await axios.get(`${API_BASE_URL}/events/society/${loggedInSocietyId}/ended`);
-                setPastEvents(pastResponse.data);
+      return (
+        matchesSearch &&
+        ((e.status === 'ended' || e.status === 'completed') ||
+          (eventDate && eventDate < today))
+      );
+    });
+  }, [events, searchTerm, today]);
 
-                setErrorEvents(null);
-            } catch (err) {
-                setErrorEvents('Failed to load events for this profile.');
-                setUpcomingEvents([]);
-                setPastEvents([]);
-            } finally {
-                setLoadingEvents(false);
-            }
-        };
+  const totalEvents = events.length;
+  const totalUpcoming = upcomingEvents.length;
+  const totalPast = pastEvents.length;
 
-        fetchProfileEvents();
-    }, [loggedInSocietyId]);
+  const renderEventCard = (event, isPast = false) => {
+    const imageSrc =
+      event.image ||
+      event.imageUrl ||
+      event.banner_image ||
+      'https://via.placeholder.com/600x300?text=Event+Image';
 
-    if (loadingProfile) {
-        return (
-            <div className="flex">
-                <Sidebar />
-                <div className="flex-1 ml-64">
-                    <Header pageTitle="My Society Profile" />
-                    <main className="p-8 bg-gray-50 min-h-[calc(100vh-64px)]">
-                        <p className="text-xl text-gray-700 text-center py-10">Loading profile...</p>
-                    </main>
-                </div>
-            </div>
-        );
-    }
-
-    if (errorProfile) {
-        return (
-            <div className="flex">
-                <Sidebar />
-                <div className="flex-1 ml-64">
-                    <Header pageTitle="My Society Profile" />
-                    <main className="p-8 bg-gray-50 min-h-[calc(100vh-64px)]">
-                        <p className="text-xl text-red-600 text-center py-10">{errorProfile}</p>
-                    </main>
-                </div>
-            </div>
-        );
-    }
-
-    if (!profile) {
-        return (
-            <div className="flex">
-                <Sidebar />
-                <div className="flex-1 ml-64">
-                    <Header pageTitle="My Society Profile" />
-                    <main className="p-8 bg-gray-50 min-h-[calc(100vh-64px)]">
-                        <p className="text-xl text-gray-700 text-center py-10">Profile not found.</p>
-                        <p className="text-center text-gray-600">Ensure you are logged in as a society administrator.</p>
-                    </main>
-                </div>
-            </div>
-        );
-    }
+    const venue = event.venue || event.location || 'Location TBA';
+    const dt = event.date_time || event.date;
+    const eventName = event.name || event.title || 'Untitled Event';
 
     return (
-        <div className="flex">
-            <Sidebar />
-            <div className="flex-1 ml-64">
-                <Header pageTitle="My Society Profile" />
-                <main className="p-8 bg-gray-50 min-h-[calc(100vh-64px)]">
-                    <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 md:p-10 mb-12 text-center relative overflow-hidden">
-                        <div className="absolute inset-0 opacity-5 bg-repeat-grid-2" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Cpath d='M9.8 8.6L7.8 6.6 6.4 8 8.4 10H10V8.6zM2 6.4L0 8.4V10h1.4L3.4 8l-1.4-1.6zm0-2.8L0 1.6V0h1.4L3.4 2l-1.4 1.6zM9.8 1.4L7.8 3.4 6.4 2 8.4 0H10v1.4z'/%3E%3C/g%3E%3C/svg%3E")` }}></div>
-                        <div className="relative z-10 flex flex-col items-center">
-                            <img
-                                src={profile.image || `https://via.placeholder.com/200x200?text=${(profile.name || 'P').charAt(0).toUpperCase()}`}
-                                alt={`${profile.name || 'Profile'} Logo`}
-                                className="w-32 h-32 sm:w-40 sm:h-40 rounded-full object-cover border-4 border-blue-400 shadow-lg mb-6 transform transition-transform duration-300 hover:scale-105"
-                            />
-                            <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight mb-3">
-                                {profile.name}
-                            </h1>
-                            <p className="text-lg text-gray-700 mb-6 max-w-2xl mx-auto leading-relaxed">
-                                {profile.description || 'No description provided for this profile.'}
-                            </p>
-                            <div className="flex flex-wrap justify-center gap-4 text-gray-600 text-sm md:text-base">
-                                {profile.email && <span className="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>{profile.email}</span>}
-                                {profile.contactNumber && <span className="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.774a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>{profile.contactNumber}</span>}
-                                {profile.contactPerson && <span className="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/></svg>{profile.contactPerson}</span>}
-                            </div>
-                        </div>
-                    </div>
-
-                    <section className="bg-white rounded-lg shadow-xl p-6 sm:p-8 md:p-10">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Events by {profile.name}</h2>
-
-                        {loadingEvents ? (
-                            <p className="text-center text-gray-700 text-lg">Loading events organized by {profile.name}...</p>
-                        ) : errorEvents ? (
-                            <p className="text-center text-red-600 text-lg">{errorEvents}</p>
-                        ) : (
-                            <>
-                                <h3 className="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Upcoming Events</h3>
-                                {upcomingEvents.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                                        {upcomingEvents.map(event => (
-                                            <Link to={`/event-detail/${event._id}`} key={event._id} className="block bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden group">
-                                                <img
-                                                    src={event.image || 'https://via.placeholder.com/300x150?text=Event+Image'}
-                                                    alt={event.name}
-                                                    className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300"
-                                                />
-                                                <div className="p-4">
-                                                    <h4 className="text-lg font-semibold text-gray-900 mb-1">{event.name}</h4>
-                                                    <p className="text-sm text-gray-600 mb-1">{event.location || 'Location TBA'}</p>
-                                                    <p className="text-xs text-gray-500">Date: {new Date(event.date).toLocaleDateString()}</p>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-center text-gray-600 text-base mb-10">No upcoming events found for {profile.name}.</p>
-                                )}
-
-                                <h3 className="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2 mt-8">Past Events</h3>
-                                {pastEvents.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {pastEvents.map(event => (
-                                            <Link to={`/event-detail/${event._id}`} key={event._id} className="block bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden group">
-                                                <img
-                                                    src={event.image || 'https://via.placeholder.com/300x150?text=Event+Image'}
-                                                    alt={event.name}
-                                                    className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300"
-                                                />
-                                                <div className="p-4">
-                                                    <h4 className="text-lg font-semibold text-gray-900 mb-1">{event.name}</h4>
-                                                    <p className="text-sm text-gray-600 mb-1">{event.location || 'Location TBA'}</p>
-                                                    <p className="text-xs text-gray-500">Date: {new Date(event.date).toLocaleDateString()}</p>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-center text-gray-600 text-base">No past events found for {profile.name}.</p>
-                                )}
-                            </>
-                        )}
-                    </section>
-                </main>
-
-                <footer className="bg-gray-950 text-gray-300 py-8 px-8 sm:px-16 lg:px-24 text-center text-sm mt-12">
-                    <p>&copy; {new Date().getFullYear()} SociNexus. All rights reserved.</p>
-                    <div className="flex justify-center space-x-6 mt-4">
-                        <Link to="/privacy" className="hover:text-white transition-colors duration-200">Privacy Policy</Link>
-                        <Link to="/terms" className="hover:text-white transition-colors duration-200">Terms of Service</Link>
-                        <Link to="/contact" className="hover:text-white transition-colors duration-200">Contact Us</Link>
-                    </div>
-                </footer>
-            </div>
+      <Link
+        to={`/event-detail/${event._id}`}
+        key={event._id}
+        className="group block bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+      >
+        <div className="relative h-44 w-full overflow-hidden">
+          <img
+            src={imageSrc}
+            alt={eventName}
+            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+              isPast ? 'grayscale group-hover:grayscale-0' : ''
+            }`}
+          />
+          <div className="absolute top-3 left-3">
+            <span
+              className={`text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-sm ${
+                isPast
+                  ? 'bg-gray-900/70 text-white'
+                  : 'bg-blue-600/90 text-white'
+              }`}
+            >
+              {isPast ? 'Past Event' : 'Upcoming'}
+            </span>
+          </div>
         </div>
+
+        <div className="p-5">
+          <h4 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1 group-hover:text-blue-700 transition-colors">
+            {eventName}
+          </h4>
+
+          <div className="space-y-2 text-sm text-gray-600">
+            <p className="truncate">
+              <span className="font-medium text-gray-800">Venue:</span> {venue}
+            </p>
+            <p>
+              <span className="font-medium text-gray-800">Date:</span>{' '}
+              {dt ? new Date(dt).toLocaleDateString() : 'TBA'}
+            </p>
+          </div>
+
+          <div className="mt-4">
+            <span className="inline-flex items-center text-sm font-semibold text-blue-600 group-hover:text-blue-800 transition-colors">
+              {isPast ? 'View History' : 'View Details'}
+              <span className="ml-2 transition-transform group-hover:translate-x-1">
+                →
+              </span>
+            </span>
+          </div>
+        </div>
+      </Link>
     );
+  };
+
+  return (
+    <div className="flex bg-gray-100 min-h-screen font-sans antialiased">
+      <Sidebar />
+
+      <div className="flex-1 ml-0 md:ml-64 w-full bg-gray-50">
+        <Header pageTitle="Society Profile" />
+
+        <main className="p-4 md:p-8 min-h-[calc(100vh-64px)]">
+          {/* Hero Section */}
+          <section className="relative overflow-hidden bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 rounded-3xl shadow-xl p-6 sm:p-8 lg:p-10 mb-8 text-white">
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_left,_white,_transparent_35%),radial-gradient(circle_at_bottom_right,_white,_transparent_30%)]" />
+
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+              <div className="max-w-3xl">
+                <div className="w-20 h-20 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-3xl font-extrabold shadow-lg mb-5">
+                  S
+                </div>
+
+                <p className="uppercase tracking-[0.2em] text-xs sm:text-sm text-blue-100 font-semibold mb-3">
+                  Society Overview
+                </p>
+
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mb-4">
+                  Society Profile & Event Management
+                </h1>
+
+                <p className="text-sm sm:text-base text-blue-50 max-w-2xl leading-relaxed">
+                  Manage your society presence in a more organized way. Review
+                  upcoming and past events, search records quickly, and keep
+                  your admin workspace clean and professional.
+                </p>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-5 sm:p-6 w-full lg:max-w-sm">
+                <p className="text-sm text-blue-100 mb-2 font-medium">
+                  Quick Search
+                </p>
+                <input
+                  type="text"
+                  placeholder="Search events by name or venue..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder:text-blue-100/80 focus:outline-none focus:ring-2 focus:ring-white/40"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Stats */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-8">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <p className="text-sm font-medium text-gray-500 mb-2">
+                Total Events
+              </p>
+              <h3 className="text-3xl font-extrabold text-gray-900">
+                {totalEvents}
+              </h3>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <p className="text-sm font-medium text-gray-500 mb-2">
+                Upcoming Events
+              </p>
+              <h3 className="text-3xl font-extrabold text-blue-600">
+                {totalUpcoming}
+              </h3>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <p className="text-sm font-medium text-gray-500 mb-2">
+                Past Events
+              </p>
+              <h3 className="text-3xl font-extrabold text-purple-600">
+                {totalPast}
+              </h3>
+            </div>
+          </section>
+
+          {/* Events Section */}
+          <section className="bg-white rounded-3xl shadow-sm border border-gray-200 p-5 sm:p-8">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wider text-blue-600 mb-2">
+                  Event Portfolio
+                </p>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+                  Organized Society Events
+                </h2>
+              </div>
+            </div>
+
+            {loadingEvents ? (
+              <div className="py-16 text-center">
+                <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600 text-base">
+                  Retrieving events from database...
+                </p>
+              </div>
+            ) : error ? (
+              <div className="py-12 text-center bg-red-50 rounded-2xl border border-red-100">
+                <p className="text-red-600 font-medium">{error}</p>
+              </div>
+            ) : (
+              <>
+                {/* Upcoming */}
+                <div className="mb-12">
+                  <div className="flex items-center justify-between gap-4 mb-6">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                      Upcoming Events
+                    </h3>
+                    <span className="text-xs sm:text-sm font-semibold px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                      {totalUpcoming} items
+                    </span>
+                  </div>
+
+                  {upcomingEvents.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {upcomingEvents.map((event) => renderEventCard(event, false))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+                      <p className="text-gray-500">
+                        No upcoming events found.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Past */}
+                <div>
+                  <div className="flex items-center justify-between gap-4 mb-6">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                      Past Events
+                    </h3>
+                    <span className="text-xs sm:text-sm font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700">
+                      {totalPast} items
+                    </span>
+                  </div>
+
+                  {pastEvents.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {pastEvents.map((event) => renderEventCard(event, true))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+                      <p className="text-gray-500">
+                        No past event history found.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </section>
+        </main>
+      </div>
+    </div>
+  );
 };
 
 export default Profile;

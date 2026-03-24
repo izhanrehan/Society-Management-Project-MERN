@@ -1,49 +1,41 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
 import connectDB from './src/config/db.js';
 
-//import authRoutes from './src/routes/old_auth.routes.js'; 
-import societyRoutes from './src/routes/society.routes.js'; 
-import eventRoutes from './src/routes/event.routes.js'; 
-import registrationRoutes from './src/routes/registration.routes.js'; 
+import authRoutes from './src/routes/auth.routes.js';
+import eventRoutes from './src/routes/event.routes.js';
+import registrationRoutes from './src/routes/registration.routes.js';
+import societyRoutes from './src/routes/society.routes.js';
 
 dotenv.config();
-connectDB();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Middleware
-const allowedOrigins = [
-  'http://localhost:3000',
-  process.env.FRONTEND_URL,
-  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
-].filter(Boolean);
+connectDB();
 
+// CORS FIX
 app.use(cors({
-  origin: allowedOrigins,
+  origin: 'http://localhost:3000',
   credentials: true,
 }));
+
 app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/registrations', registrationRoutes);
+app.use('/api/societies', societyRoutes);
 
 // Test route
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
-// ✅ Use routes
-// app.use('/api/auth', authRoutes);
-app.use('/api/societies', societyRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/registrations', registrationRoutes); 
-
-// Export for Vercel serverless functions
-export default app;
-
-// Only listen if not in Vercel environment
-if (process.env.VERCEL !== '1') {
-  const PORT = process.env.PORT || 5050;
-  app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

@@ -1,4 +1,3 @@
-// src/pages/admin/ManageEvents.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -6,74 +5,43 @@ import Sidebar from '../../components/Sidebar';
 import Header from '../../components/Header';
 import API_BASE_URL from '../../config/api';
 
-const getCurrentSocietyId = () => {
-    return '684d8d423127bff09b6e9f14'; // replace with actual dynamic society ID if needed
-};
-
 const ManageEvents = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('upcoming');
     const [searchTerm, setSearchTerm] = useState('');
-    const [eventTypeFilter, setEventTypeFilter] = useState('');
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const societyId = getCurrentSocietyId();
-
     useEffect(() => {
-        const fetchEvents = async () => {
+        const fetchAllEventsWithoutFilter = async () => {
             setLoading(true);
             setError(null);
 
             try {
-                if (!societyId) {
-                    setError("Society ID is missing.");
-                    return;
-                }
-
-                let endpoint = '';
-                if (activeTab === 'upcoming') {
-                    endpoint = `${API_BASE_URL}/events/society/${societyId}/upcoming`;
-                } else if (activeTab === 'completed') {
-                    endpoint = `${API_BASE_URL}/events/society/${societyId}/ended`;
-                } else {
-                    endpoint = `${API_BASE_URL}/events/society/${societyId}`;
-                }
-
-                const response = await axios.get(endpoint);
-                let fetchedEvents = response.data;
-
-                // Filter archived manually if on archived tab
-                if (activeTab === 'archived') {
-                    fetchedEvents = fetchedEvents.filter(event => event.status?.toLowerCase() === 'archived');
-                }
-
-                setEvents(fetchedEvents);
+                const response = await axios.get(`${API_BASE_URL}/events`);
+                setEvents(response.data || []);
             } catch (err) {
-                const message = err.response?.data?.error || err.message;
-                setError(`Failed to load events. ${message}`);
+                console.error("Fetch failed:", err);
+                setError(`Failed to load events. Backend says: ${err.message}`);
                 setEvents([]);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchEvents();
-    }, [activeTab, societyId]);
+        fetchAllEventsWithoutFilter();
+    }, []);
 
-    const filteredEvents = events.filter(event => {
-        const nameMatch = (event.name || '').toLowerCase().includes(searchTerm.toLowerCase());
-        const typeMatch = !eventTypeFilter || (event.type || '').toLowerCase() === eventTypeFilter.toLowerCase();
-        return nameMatch && typeMatch;
-    });
+    const filteredEvents = events.filter(event => 
+        (event.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const handleEditEvent = (eventId) => {
         navigate(`/admin/add-edit-event/${eventId}`);
     };
 
     const handleDeleteEvent = async (eventId) => {
-        if (window.confirm('Are you sure you want to delete this event?')) {
+        if (window.confirm('Are you sure you want to delete this event? This action is permanent.')) {
             try {
                 setLoading(true);
                 await axios.delete(`${API_BASE_URL}/events/${eventId}`);
@@ -89,108 +57,131 @@ const ManageEvents = () => {
     return (
         <div className="flex">
             <Sidebar />
-            <div className="flex-1 ml-64">
+            <div className="flex-1 ml-0 md:ml-64 w-full bg-gray-50">
                 <Header pageTitle="Manage Events" />
-                <main className="p-8 bg-gray-50 min-h-[calc(100vh-64px)]">
-                    {/* Tabs */}
-                    <div className="mb-6 border-b border-gray-200">
-                        <nav className="flex space-x-8">
-                            {['upcoming', 'completed', 'archived'].map(tab => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab)}
-                                    className={`py-2 px-4 text-sm font-medium ${
-                                        activeTab === tab ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                                >
-                                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                                </button>
-                            ))}
-                        </nav>
-                    </div>
-
-                    {/* Filters */}
-                    <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-                        <div className="flex items-center gap-4 flex-wrap">
-                            <select
-                                value={eventTypeFilter}
-                                onChange={(e) => setEventTypeFilter(e.target.value)}
-                                className="border rounded px-4 py-2"
-                            >
-                                <option value="">Event Type</option>
-                                <option value="physical">Physical</option>
-                                <option value="preparation">Preparation</option>
-                            </select>
-                            <input
-                                type="text"
-                                placeholder="Search by name..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="border rounded px-4 py-2 flex-grow"
-                            />
-                        </div>
+                <main className="p-4 md:p-8 min-h-[calc(100vh-64px)]">
+                    
+                    {/* Search and Action Header */}
+                    <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center mb-6 gap-4 bg-white p-4 rounded-xl shadow-sm">
+                        <input
+                            type="text"
+                            placeholder="Filter events by name..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="border border-gray-300 rounded-full px-4 py-2 w-full md:w-1/3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        />
                         <button
                             onClick={() => navigate('/admin/add-edit-event')}
-                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                            className="bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold hover:bg-blue-700 transition w-full md:w-auto text-sm shadow-md"
                         >
-                            Add New Event
+                            + Add New Event
                         </button>
                     </div>
 
-                    {/* Table */}
-                    {loading && <p className="text-center text-gray-600 py-8">Loading events...</p>}
-                    {error && <p className="text-center text-red-600 py-8">{error}</p>}
+                    {loading && <p className="text-center text-gray-600 py-12">Retrieving system database events...</p>}
+                    {error && <p className="text-center text-red-600 py-12">{error}</p>}
+                    
                     {!loading && !error && (
-                        <div className="bg-white shadow rounded overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-100">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-600">Name</th>
-                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-600">Date</th>
-                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-600">Venue</th>
-                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-600">Status</th>
-                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-600">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredEvents.length > 0 ? (
-                                        filteredEvents.map(event => (
-                                            <tr key={event._id}>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{event.name}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {event.date_time ? new Date(event.date_time).toLocaleDateString('en-US') : 'N/A'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {event.venue || 'N/A'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                                                        event.status === 'upcoming' ? 'bg-blue-100 text-blue-700' :
-                                                        event.status === 'active' ? 'bg-green-100 text-green-700' :
-                                                        event.status === 'archived' ? 'bg-yellow-100 text-yellow-700' :
-                                                        event.status === 'cancelled' ? 'bg-red-100 text-red-600' :
-                                                        'bg-gray-100 text-gray-700'
-                                                    }`}>
-                                                        {event.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                    <button onClick={() => navigate(`/event-detail/${event._id}`)} className="text-blue-600 mr-4 hover:underline">View</button>
-                                                    <button onClick={() => handleEditEvent(event._id)} className="text-indigo-600 mr-4 hover:underline">Edit</button>
-                                                    <button onClick={() => handleDeleteEvent(event._id)} className="text-red-600 hover:underline">Delete</button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
+                        <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-100">
+                            <div className="w-full">
+                                
+                                {/* 💻 Desktop View (Hidden on mobile) */}
+                                <table className="min-w-full divide-y divide-gray-200 hidden md:table">
+                                    <thead className="bg-gray-100">
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-4 text-center text-gray-500">No events found.</td>
+                                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Event Information</th>
+                                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Schedule Data</th>
+                                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status Badge</th>
+                                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions Hub</th>
                                         </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {filteredEvents.length > 0 ? (
+                                            filteredEvents.map(event => {
+                                                const today = new Date().toISOString().split('T')[0];
+                                                const date = event.date_time || event.date;
+                                                const isUpcoming = date && date >= today;
+
+                                                return (
+                                                    <tr key={event._id} className="hover:bg-gray-50 transition">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">{event.name}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                            <div>📅 {date ? new Date(date).toLocaleDateString() : 'N/A'}</div>
+                                                            <div className="text-xs text-gray-400 mt-1">📍 {event.venue || event.location || 'N/A'}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                            <span className={`px-2 py-1 text-xs font-bold rounded-full ${isUpcoming ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                                {isUpcoming ? 'Upcoming' : 'Past'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-3">
+                                                            <button onClick={() => navigate(`/event-detail/${event._id}`)} className="text-blue-600 font-medium hover:underline">View</button>
+                                                            <button onClick={() => handleEditEvent(event._id)} className="text-indigo-600 font-medium hover:underline">Edit</button>
+                                                            <button onClick={() => handleDeleteEvent(event._id)} className="text-red-600 font-medium hover:underline">Delete</button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="4" className="px-6 py-6 text-center text-gray-500 text-sm">No events found.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+
+                                {/* 📱 Mobile View (Cards) */}
+                                <div className="block md:hidden divide-y divide-gray-200">
+                                    {filteredEvents.length > 0 ? (
+                                        filteredEvents.map(event => {
+                                            const today = new Date().toISOString().split('T')[0];
+                                            const date = event.date_time || event.date;
+                                            const isUpcoming = date && date >= today;
+
+                                            return (
+                                                <div key={event._id} className="p-4 bg-white flex flex-col space-y-3">
+                                                    <div>
+                                                        <span className="text-xs font-bold text-gray-400 uppercase">Event Name</span>
+                                                        <h3 className="text-sm font-semibold text-gray-800">{event.name}</h3>
+                                                    </div>
+                                                    
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div>
+                                                            <span className="text-xs font-bold text-gray-400 uppercase">Schedule Data</span>
+                                                            <div className="text-xs text-gray-700 mt-1">📅 {date ? new Date(date).toLocaleDateString() : 'N/A'}</div>
+                                                            <div className="text-xs text-gray-500 truncate mt-0.5">📍 {event.venue || event.location || 'N/A'}</div>
+                                                        </div>
+                                                        
+                                                        <div>
+                                                            <span className="text-xs font-bold text-gray-400 uppercase">Status</span>
+                                                            <div className="mt-1">
+                                                                <span className={`px-2 py-1 text-xs font-bold rounded-full ${isUpcoming ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                                    {isUpcoming ? 'Upcoming' : 'Past'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="pt-2 border-t border-gray-100 flex justify-between items-center">
+                                                        <span className="text-xs font-bold text-gray-400 uppercase">Actions Hub</span>
+                                                        <div className="flex space-x-4">
+                                                            <button onClick={() => navigate(`/event-detail/${event._id}`)} className="text-blue-600 text-sm font-medium">View</button>
+                                                            <button onClick={() => handleEditEvent(event._id)} className="text-indigo-600 text-sm font-medium">Edit</button>
+                                                            <button onClick={() => handleDeleteEvent(event._id)} className="text-red-600 text-sm font-medium">Delete</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="p-6 text-center text-sm text-gray-500">No events found.</div>
                                     )}
-                                </tbody>
-                            </table>
+                                </div>
+
+                            </div>
                         </div>
                     )}
-                </main>
+                </main> 
             </div>
         </div>
     );
