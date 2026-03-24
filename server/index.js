@@ -15,15 +15,17 @@ const PORT = process.env.PORT || 5000;
 
 connectDB();
 
+// ✅ Fixed typo here (removed 'l' from '-4ylr')
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://society-management-project-mern-4ylr.vercel.app',
+  'https://society-management-project-mern-4yr.vercel.app',
   'https://society-management-project-mern.vercel.app',
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Local development and postman me origin undefined hota hai, allow it
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -31,6 +33,8 @@ app.use(
       }
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
