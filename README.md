@@ -1,11 +1,3 @@
-Oh\! Mujhe samajh aa gaya. Aapko **SociNexus (Society Management System)** ke liye professional `README.md` chahiye tha jo aapke deployment profiles ke sath match kare\!
-
-Yahan SociNexus ka aik **Professional aur Standard Profile** README hai jo aapke is specific project ke features ko highlight karega. Isme Society features, Admin dashboard, aur live links add kiye gaye hain.
-
-Aap is code ko copy kar ke apni **SociNexus repository ki `README.md` file** mein paste kar dein:
-
------
-
 ````markdown
 # 🏛️ SociNexus - Society Management System (MERN)
 
@@ -138,6 +130,5 @@ REACT_APP_API_URL=[https://society-management-project-mern.vercel.app/api](https
 -----
 
 ## 👥 Contributors
-
   * **Izhan Rehan** - *Full Stack Developer* - [GitHub Profile](https://www.google.com/search?q=https://github.com/izhanrehan)
 
