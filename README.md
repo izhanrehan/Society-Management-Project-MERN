@@ -1,26 +1,26 @@
-````markdown
 # 🏛️ SociNexus - Society Management System (MERN)
 
 > A modern, automated workspace for university societies to manage events, registrations, and memberships seamlessly.
 
-[![Vercel Deployment](https://img.shields.io/badge/Deployment-Vercel-black?logo=vercel&logoColor=white)](https://society-management-project-mern-4yr.vercel.app/)
-[![React](https://img.shields.io/badge/Frontend-React.js-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB%20Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Deployment](https://img.shields.io/badge/Live-Vercel-black?logo=vercel)](https://society-management-project-mern-4yr.vercel.app/)
+[![React](https://img.shields.io/badge/Frontend-React.js-61DAFB?logo=react)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?logo=node.js)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb)](https://www.mongodb.com/)
 
-**SociNexus** simplifies how academic and recreational societies operate. It bridges the communication gap between students and society admins by providing a unified platform for tracking upcoming events, managing historical records, and processing student registrations.
+**SociNexus** simplifies how academic and recreational societies operate by providing a unified platform for managing events, registrations, and communication between students and administrators.
 
-🔗 **Live Frontend:** [soci Nexus Web App](https://society-management-project-mern-4yr.vercel.app/)  
-🔗 **Live API Base:** [SociNexus Backend API](https://society-management-project-mern.vercel.app/)
+🔗 **Live App:** https://society-management-project-mern-4yr.vercel.app/
+🔗 **API Base URL:** https://society-management-project-mern.vercel.app/
 
 ---
 
 ## 📑 Table of Contents
+
 * [🌟 Project Overview](#-project-overview)
 * [🚀 Core Features](#-core-features)
 * [💻 Technology Stack](#-technology-stack)
 * [📂 Repository Structure](#-repository-structure)
-* [⚙️ Getting Started (Local Setup)](#️-getting-started-local-setup)
+* [⚙️ Getting Started](#️-getting-started-local-setup)
 * [🔑 Environment Variables](#-environment-variables)
 * [👥 Contributors](#-contributors)
 
@@ -28,108 +28,143 @@
 
 ## 🌟 Project Overview
 
-Managing multiple societies, tracking active members, and publicizing events can be chaotic on paper or chat groups. SociNexus translates this ecosystem into an organized web application. It offers distinct privileges for **Students/Visitors** (browsing & registering) and **Admins** (approving & scheduling).
+Managing societies, members, and events manually can be inefficient and disorganized.
+**SociNexus** digitizes this process with a structured system.
+
+### 👤 User Roles:
+
+* **Students / Visitors** → Browse societies & register for events
+* **Admins** → Manage events, approve registrations, control data
 
 ---
 
 ## 🚀 Core Features
 
-* 🔐 **Role-Based Authentication:** Dedicated Login/Registration for Students and Society Administrators.
-* 📅 **Event Management:** Create, filter, and display upcoming vs. past events effortlessly.
-* 🤝 **Society Partnerships:** Browse official partner societies with their profiles.
-* 📊 **Admin Dashboard:** Centralized metrics and control panels for society heads.
-* 📱 **Responsive & Accessible UI:** Modern interface compatible across mobile, tablet, and desktop viewports.
-* 🌐 **Cross-Origin (CORS) Configuration:** Secure deployments separating production frontend from node backend.
+* 🔐 Role-Based Authentication (Admin / Student)
+* 📅 Event Management (Upcoming & Past Events)
+* 🤝 Society Listings & Partnerships
+* 📊 Admin Dashboard (Centralized Controls)
+* 📱 Fully Responsive UI
+* 🌐 Secure CORS-enabled Deployment
 
 ---
 
 ## 💻 Technology Stack
 
-| Layer | Technology | Description |
-| :--- | :--- | :--- |
-| **Frontend** | React.js, Tailwind CSS | High-performance, interactive, and responsive user interfaces |
-| **Backend** | Node.js, Express.js | Secure RESTful APIs with Router middlewares |
-| **Database** | MongoDB (Atlas) | Cloud data storage for profiles, societies, and event records |
-| **Deployment** | Vercel Serverless | Scalable automated hosting pipeline |
+| Layer      | Technology             |
+| ---------- | ---------------------- |
+| Frontend   | React.js, Tailwind CSS |
+| Backend    | Node.js, Express.js    |
+| Database   | MongoDB Atlas          |
+| Deployment | Vercel Serverless      |
 
 ---
 
 ## 📂 Repository Structure
 
-```directory
+```bash
 society-management-system/
-├── 📂 client/                 # React Frontend
-│   ├── src/
-│   │   ├── components/       # Reusable UI Blocks (Navbar, Sidebars)
-│   │   ├── lib/              # Axios instance setup
-│   │   ├── config/           # API environment variables handler
-│   │   └── routes/           # Protected routing schemes
-├── 📂 server/                 # Node.js Express Backend
-│   ├── src/
-│   │   ├── config/           # MongoDB Connection Setup
-│   │   ├── models/           # Mongoose Schemas (Admin, Events, Registration)
-│   │   └── routes/           # Endpoint handlers (auth, event, society)
-│   ├── index.js              # Server entry point
-│   └── vercel.json           # Serverless Routing rules
-````
+│
+├── client/                  # React Frontend
+│   └── src/
+│       ├── components/     # UI Components
+│       ├── lib/            # Axios Setup
+│       ├── config/         # API Config
+│       └── routes/         # Protected Routes
+│
+├── server/                  # Express Backend
+│   └── src/
+│       ├── config/         # DB Connection
+│       ├── models/         # Schemas
+│       └── routes/         # API Routes
+│
+├── index.js                # Server Entry
+└── vercel.json             # Deployment Config
+```
 
------
+---
 
-⚙️ Getting Started (Local Setup)
-📋 Prerequisites
-Node.js LTS
+## ⚙️ Getting Started (Local Setup)
 
-MongoDB Local or Atlas Connection String
+### 📋 Prerequisites
 
-🔧 Installation
-Clone the repository:
+* Node.js (LTS recommended)
+* MongoDB (Local or Atlas)
 
-Bash
+---
+
+### 🔧 Installation
+
+#### 1️⃣ Clone Repository
+
+```bash
 git clone https://github.com/izhanrehan/Society-Management-Project-MERN.git
 cd Society-Management-Project-MERN
-Initialize Backend:
+```
 
-Bash
+---
+
+#### 2️⃣ Setup Backend
+
+```bash
 cd server
 npm install
-npm run dev # or node index.js
-Initialize Frontend:
+npm run dev   # or: node index.js
+```
 
-Bash
+---
+
+#### 3️⃣ Setup Frontend
+
+```bash
 cd ../client
 npm install
 npm start
-🔑 Environment Variables
-Deploy with the following setups in your .env files for production:
+```
 
-Backend Setup (/server/.env):
+---
 
-Code snippet
+## 🔑 Environment Variables
+
+### 📦 Backend (`/server/.env`)
+
+```env
 MONGO_URI=your_mongodb_cluster_url
 PORT=5000
-JWT_SECRET=your_secret_encryption_key
-Frontend Setup (/client/.env):
+JWT_SECRET=your_secret_key
+```
 
-Code snippet
+---
+
+### 🌐 Frontend (`/client/.env`)
+
+```env
 REACT_APP_API_URL=https://society-management-project-mern.vercel.app/api
-👥 Contributors
-<p align="left">
-<a href="https://github.com/izhanrehan">
-<img src="https://img.shields.io/badge/Developer-Izhan%20Rehan-blue?style=for-the-badge&logo=github" alt="Izhan GitHub" />
-</a>
-</p>
+```
 
-Izhan Rehan - Full Stack Developer - GitHub Profile
+---
 
-<p align="center">Built with 💻 and 🧠 as a MERN Stack Prototype</p>
+## ▶️ Running the Project
 
-<p align="center">
-<img src="https://img.shields.io/badge/MongoDB-4EA94B?style=flat-square&logo=mongodb&logoColor=white" />
-<img src="https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white" />
-<img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" />
-<img src="https://img.shields.io/badge/Node-339933?style=flat-square&logo=node.js&logoColor=white" />
-</p>
+```bash
+# Backend
+cd server
+npm run dev
 
-<p align="center">
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=65&section=footer" width="100%"/>
-</p>
+# Frontend
+cd client
+npm start
+```
+
+---
+
+## 👥 Contributors
+
+* **Izhan Rehan** – Full Stack Developer
+  🔗 https://github.com/izhanrehan
+
+---
+
+## 💡 Note
+
+Built as a MERN Stack project for academic and practical implementation of full-stack development concepts.
